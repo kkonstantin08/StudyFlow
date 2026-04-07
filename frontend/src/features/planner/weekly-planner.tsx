@@ -44,31 +44,51 @@ function EventChip({
   const timeValue = item.display_start_at ?? item.display_due_at;
 
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-tide/20 hover:shadow-md">
-      <button
-        type="button"
-        className="grid min-w-0 gap-3 text-left focus:outline-none focus:ring-2 focus:ring-coral/40"
-        onClick={() => onOpen(item)}
-      >
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span
-            className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
-            style={{ backgroundColor: item.color ?? "#0f3d3e" }}
+    <>
+      <div className="lg:hidden">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-tide/20 hover:shadow-md">
+          <button
+            type="button"
+            className="grid min-w-0 gap-3 text-left focus:outline-none focus:ring-2 focus:ring-coral/40"
+            onClick={() => onOpen(item)}
           >
-            {item.item_type}
-          </span>
-          {item.is_recurring ? <Repeat className="size-4 text-slate-400" /> : null}
-          {item.sync_status ? <span className="min-w-0 break-words text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.sync_status}</span> : null}
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span
+                className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
+                style={{ backgroundColor: item.color ?? "#0f3d3e" }}
+              >
+                {item.item_type}
+              </span>
+              {item.is_recurring ? <Repeat className="size-4 text-slate-400" /> : null}
+              {item.sync_status ? <span className="min-w-0 break-words text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.sync_status}</span> : null}
+            </div>
+            <div className="min-w-0">
+              <div className="break-words text-sm font-semibold text-ink">{item.title}</div>
+              <div className="text-xs text-slate-500">{timeValue ? formatTime(timeValue) : "Без времени"}</div>
+            </div>
+          </button>
+          <div className="flex shrink-0 flex-col gap-2 self-start">
+            <Button
+              variant={syncEnabled ? "secondary" : "ghost"}
+              className="h-11 w-11 rounded-full p-0"
+              onClick={(event) => {
+                event.stopPropagation();
+                onSync(item);
+              }}
+              disabled={!syncEnabled}
+              title={syncHint}
+              aria-label="Синхронизировать событие"
+            >
+              <CalendarSync className="size-4" />
+            </Button>
+          </div>
         </div>
-        <div className="min-w-0">
-          <div className="break-words text-sm font-semibold text-ink">{item.title}</div>
-          <div className="text-xs text-slate-500">{timeValue ? formatTime(timeValue) : "Без времени"}</div>
-        </div>
-      </button>
-      <div className="flex shrink-0 flex-col gap-2 self-start">
+      </div>
+
+      <div className="relative hidden min-w-0 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-tide/20 hover:shadow-md lg:block">
         <Button
           variant={syncEnabled ? "secondary" : "ghost"}
-          className="h-11 w-11 rounded-full p-0"
+          className="absolute right-4 top-4 h-9 w-9 rounded-full p-0"
           onClick={(event) => {
             event.stopPropagation();
             onSync(item);
@@ -79,28 +99,12 @@ function EventChip({
         >
           <CalendarSync className="size-4" />
         </Button>
-      </div>
-    </div>
-  );
-}
 
-function TaskChip({ item, onOpen, onToggleComplete }: { item: PlannerOccurrence; onOpen: (item: PlannerOccurrence) => void; onToggleComplete: (item: PlannerOccurrence) => void }) {
-  const timeValue = item.display_start_at ?? item.display_due_at;
-  const isCompleted = item.completed_for_occurrence;
-
-  return (
-    <div
-      className={clsx(
-        "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-3xl border p-4 shadow-soft transition",
-        isCompleted ? "border-emerald-200 bg-emerald-50/90 text-slate-500" : "border-white/70 bg-white/90",
-      )}
-    >
-      <button
-        type="button"
-        className="grid min-w-0 gap-2 text-left transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-coral/40"
-        onClick={() => onOpen(item)}
-      >
-        <div className="min-w-0 space-y-2">
+        <button
+          type="button"
+          className="grid min-w-0 gap-3 pr-12 text-left focus:outline-none focus:ring-2 focus:ring-coral/40"
+          onClick={() => onOpen(item)}
+        >
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span
               className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
@@ -109,24 +113,84 @@ function TaskChip({ item, onOpen, onToggleComplete }: { item: PlannerOccurrence;
               {item.item_type}
             </span>
             {item.is_recurring ? <Repeat className="size-4 text-slate-400" /> : null}
-            {isCompleted ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                <CheckCircle2 className="size-3.5" />
-                Выполнено
-              </span>
-            ) : null}
+            {item.sync_status ? <span className="min-w-0 break-words text-[11px] uppercase tracking-[0.16em] text-slate-400">{item.sync_status}</span> : null}
           </div>
           <div className="min-w-0">
-            <div className={clsx("break-words text-sm font-semibold", isCompleted ? "text-slate-500 line-through" : "text-ink")}>{item.title}</div>
-            <div className={clsx("text-xs", isCompleted ? "text-slate-400" : "text-slate-500")}>{timeValue ? formatTime(timeValue) : "Без времени"}</div>
+            <div className="overflow-hidden text-sm font-semibold leading-5 text-ink [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+              {item.title}
+            </div>
+            <div className="mt-1 text-xs text-slate-500">{timeValue ? formatTime(timeValue) : "Без времени"}</div>
+          </div>
+        </button>
+      </div>
+    </>
+  );
+}
+
+function TaskChip({ item, onOpen, onToggleComplete }: { item: PlannerOccurrence; onOpen: (item: PlannerOccurrence) => void; onToggleComplete: (item: PlannerOccurrence) => void }) {
+  const timeValue = item.display_start_at ?? item.display_due_at;
+  const isCompleted = item.completed_for_occurrence;
+
+  return (
+    <>
+      <div className="lg:hidden">
+        <div
+          className={clsx(
+            "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-3xl border p-4 shadow-soft transition",
+            isCompleted ? "border-emerald-200 bg-emerald-50/90" : "border-white/70 bg-white/90",
+          )}
+        >
+          <button
+            type="button"
+            className="grid min-w-0 gap-2 text-left transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-coral/40"
+            onClick={() => onOpen(item)}
+          >
+            <div className="min-w-0 space-y-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span
+                  className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
+                  style={{ backgroundColor: item.color ?? "#0f3d3e" }}
+                >
+                  {item.item_type}
+                </span>
+                {item.is_recurring ? <Repeat className="size-4 text-slate-400" /> : null}
+              </div>
+              <div className="min-w-0">
+                <div className="break-words text-sm font-semibold text-ink">{item.title}</div>
+                <div className="text-xs text-slate-500">{timeValue ? formatTime(timeValue) : "Без времени"}</div>
+              </div>
+            </div>
+          </button>
+          <div className="flex shrink-0 flex-col gap-2 self-start">
+            <Button
+              variant={isCompleted ? "secondary" : "ghost"}
+              className={clsx(
+                "h-12 w-12 rounded-full p-0",
+                isCompleted ? "border border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "border border-slate-200",
+              )}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleComplete(item);
+              }}
+              aria-label={isCompleted ? "Отметить как невыполненную" : "Отметить как выполненную"}
+              title={isCompleted ? "Отметить как невыполненную" : "Отметить как выполненную"}
+            >
+              <CheckCircle2 className="size-5" />
+            </Button>
           </div>
         </div>
-      </button>
-      <div className="flex shrink-0 flex-col gap-2 self-start">
+      </div>
+
+      <div
+        className={clsx(
+          "relative hidden min-w-0 rounded-3xl border p-4 shadow-soft transition lg:block",
+          isCompleted ? "border-emerald-200 bg-emerald-50/90" : "border-white/70 bg-white/90 hover:-translate-y-0.5 hover:border-tide/20 hover:shadow-md",
+        )}
+      >
         <Button
           variant={isCompleted ? "secondary" : "ghost"}
           className={clsx(
-            "h-12 w-12 rounded-full p-0",
+            "absolute right-4 top-4 h-9 w-9 rounded-full p-0",
             isCompleted ? "border border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "border border-slate-200",
           )}
           onClick={(event) => {
@@ -136,10 +200,34 @@ function TaskChip({ item, onOpen, onToggleComplete }: { item: PlannerOccurrence;
           aria-label={isCompleted ? "Отметить как невыполненную" : "Отметить как выполненную"}
           title={isCompleted ? "Отметить как невыполненную" : "Отметить как выполненную"}
         >
-          <CheckCircle2 className="size-5" />
+          <CheckCircle2 className="size-4" />
         </Button>
+
+        <button
+          type="button"
+          className="grid min-w-0 gap-2 pr-12 text-left transition focus:outline-none focus:ring-2 focus:ring-coral/40"
+          onClick={() => onOpen(item)}
+        >
+          <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span
+                className="inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
+                style={{ backgroundColor: item.color ?? "#0f3d3e" }}
+              >
+                {item.item_type}
+              </span>
+              {item.is_recurring ? <Repeat className="size-4 text-slate-400" /> : null}
+            </div>
+            <div className="min-w-0">
+              <div className="overflow-hidden text-sm font-semibold leading-5 text-ink [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                {item.title}
+              </div>
+              <div className="mt-1 text-xs text-slate-500">{timeValue ? formatTime(timeValue) : "Без времени"}</div>
+            </div>
+          </div>
+        </button>
       </div>
-    </div>
+    </>
   );
 }
 
