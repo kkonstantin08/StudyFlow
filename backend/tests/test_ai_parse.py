@@ -73,3 +73,30 @@ def test_client_timezone_overrides_user_timezone(monkeypatch):
 
     assert parsed["start_at"] == "2026-04-04T18:00:00+00:00"
     assert any("Relative date was resolved" in warning for warning in warnings)
+
+
+def test_draft_is_saved_only_after_explicit_confirmation(auth_client):
+    draft_response = auth_client.post("/api/v1/ai/parse", json={"raw_text": "Finish database assignment tomorrow at 18:00"})
+    assert draft_response.status_code == 201
+    draft = draft_response.json()
+
+    items_before_confirmation = auth_client.get("/api/v1/items")
+    assert items_before_confirmation.status_code == 200
+    assert items_before_confirmation.json() == []
+
+    item_payload = draft["parsed_payload_json"]["item"]
+    item_payload["title"] = "Finish database assignment"
+
+    confirm_response = auth_client.post(f"/api/v1/ai/drafts/{draft['id']}/confirm", json={"item": item_payload})
+    assert confirm_response.status_code == 200
+    assert confirm_response.json()["title"] == "Finish database assignment"
+    assert confirm_response.json()["source"] == "ai"
+
+    items_after_confirmation = auth_client.get("/api/v1/items")
+    assert items_after_confirmation.status_code == 200
+    assert len(items_after_confirmation.json()) == 1
+
+    draft_after_confirmation = auth_client.get(f"/api/v1/ai/drafts/{draft['id']}")
+    assert draft_after_confirmation.status_code == 200
+    assert draft_after_confirmation.json()["parse_status"] == "confirmed"
+    assert draft_after_confirmation.json()["confirmed_at"] is not None
