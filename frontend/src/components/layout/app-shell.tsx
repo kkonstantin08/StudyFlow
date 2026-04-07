@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { CalendarDays, LogOut, Sparkles } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { CalendarDays, LogOut, Sparkles, Waypoints } from "lucide-react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useCurrentUser, useLogout } from "../../features/auth/use-auth";
 import { useI18n } from "../../lib/i18n";
@@ -10,13 +10,15 @@ import { Button } from "../ui/forms";
 export function AppShell({ children }: { children: ReactNode }) {
   const { data: user } = useCurrentUser();
   const logout = useLogout();
+  const location = useLocation();
   const navigate = useNavigate();
   const { messages } = useI18n();
 
   const navItems = [
-    { to: "/planner", label: messages.appShell.navPlanner },
-    { to: "/settings/integrations", label: messages.appShell.navIntegrations },
+    { to: "/planner", label: messages.appShell.navPlanner, icon: CalendarDays },
+    { to: "/settings/integrations", label: messages.appShell.navIntegrations, icon: Waypoints },
   ];
+  const showMobileNav = navItems.some((item) => item.to === location.pathname);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,61,62,0.12),_transparent_36%),linear-gradient(180deg,_#f8f3e8_0%,_#fefcf8_52%,_#eef6ff_100%)]">
@@ -66,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+      <main className={`mx-auto max-w-7xl px-4 py-6 md:px-6 ${showMobileNav ? "pb-28 md:pb-6" : ""}`}>
         <div className="mb-6 flex items-center gap-3 rounded-[2rem] bg-white/70 px-4 py-4 shadow-soft backdrop-blur">
           <span className="grid size-11 place-items-center rounded-2xl bg-coral/15 text-coral">
             <Sparkles className="size-5" />
@@ -78,6 +80,29 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         {children}
       </main>
+      {showMobileNav ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+          <nav className="mx-auto grid max-w-md grid-cols-2 gap-2 rounded-[1.75rem] border border-white/70 bg-white/90 p-2 shadow-soft backdrop-blur">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex items-center justify-center gap-2 rounded-[1.2rem] px-3 py-3 text-sm font-medium transition ${
+                      isActive ? "bg-tide text-white shadow-soft" : "text-slate-600 hover:bg-sand/80"
+                    }`
+                  }
+                >
+                  <Icon className="size-4" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+      ) : null}
     </div>
   );
 }

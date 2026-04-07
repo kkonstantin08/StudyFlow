@@ -152,7 +152,7 @@ export function ReminderCenter() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-40">
+    <div className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-4 z-40 md:bottom-4">
       <div className="relative">
         {isOpen ? (
           <div
