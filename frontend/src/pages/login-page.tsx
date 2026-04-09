@@ -31,8 +31,8 @@ export function LoginPage() {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
+      email: "",
+      password: "",
     },
   });
 
@@ -97,7 +97,7 @@ export function LoginPage() {
             )}
           >
             <Field label="Email">
-              <Input placeholder={DEMO_EMAIL} {...form.register("email")} />
+              <Input placeholder="name@example.com" {...form.register("email")} />
               {form.formState.errors.email ? <span className="text-sm text-red-500">{form.formState.errors.email.message}</span> : null}
             </Field>
 
